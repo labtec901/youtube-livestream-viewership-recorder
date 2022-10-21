@@ -19,7 +19,7 @@ import os
 import sys
 
 # Hardcoded API key default
-yt_api_key = 'Your API Key Here'
+yt_api_key = 'Your Api Key Here'
 
 # Command Line Arguments
 parser = argparse.ArgumentParser(description='Log viewership for a youtube livestream')
@@ -85,7 +85,7 @@ def append_list_as_row(file_name, list_of_elem):
         csv_writer = writer(write_obj)
         # Add contents of list as last row in the csv file
         csv_writer.writerow(list_of_elem)
-        logging.info('Wrote new row to file: ' + video_id + '_video_data.csv')
+        logging.info('Wrote new row to file: ' + slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv')
 
 
 video_id = get_yt_id(args.url[0])
@@ -140,9 +140,9 @@ while True:
         try:
             with open(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
                       encoding="utf-8") as f:
-                logging.info('File present: ' + video_id + '_video_data.csv')
+                logging.info('File present: ' + slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv')
         except FileNotFoundError:
-            logging.info('File NOT present: ' + video_id + '_video_data.csv')
+            logging.info('File NOT present: ' + slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv')
             logging.info('New file will be created')
             append_list_as_row(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
                                vidData)
