@@ -16,16 +16,37 @@ from matplotlib.dates import DateFormatter
 from slugify import slugify
 import urllib.request
 import os
+import sys
 
+# Hardcoded API key default
+yt_api_key = 'Your API Key Here'
+
+# Command Line Arguments
+parser = argparse.ArgumentParser(description='Log viewership for a youtube livestream')
+parser.add_argument('url', metavar='url', type=str, nargs=1,
+                    help='A YouTube livestream URL')
+parser.add_argument('r', default=-1, type=int, nargs='?',
+                    help='How often to fetch and log viewership (sec) (default: just once)')
+parser.add_argument('--filepath', type=str, nargs='?', default=os.getcwd(),
+                    help='Path to save logs and images to (default: current working directory)')
+parser.add_argument('--api_key', default=yt_api_key, type=str, nargs='?',
+                    help='Youtube API Key (default: hardcoded)')
+parser.add_argument('-gshow', action='store_true', help="Graph and show the CSV output")
+parser.add_argument('-gsave', action='store_true', help="Graph and save a PNG of the CSV output")
+
+args = parser.parse_args()
+
+os.chdir(args.filepath)
 # Set Logging
 logging.basicConfig(
-    handlers=[logging.FileHandler("youtube_livestream_viewership_recorder.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler("youtube_livestream_viewership_recorder.log"), logging.StreamHandler(sys.stdout)],
+    # handlers=[logging.StreamHandler()],
     format='%(asctime)s | %(levelname)s: %(message)s', level=logging.INFO)
 
 # Set some plotting defaults
 if not os.path.exists("CJK_font.otf"):
     logging.info('CJK font file not found in directory.  Downloading one...')
-    github_url = 'https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTC/NotoSansCJK-Bold.ttc' #Get a CJK font for Asian chars
+    github_url = 'https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTC/NotoSansCJK-Bold.ttc'  # Get a CJK font for Asian chars
     urllib.request.urlretrieve(github_url, "CJK_font.otf")
 
 fprop = fm.FontProperties(family='sans-serif', fname='CJK_font.otf')
@@ -35,23 +56,6 @@ plt.xkcd(scale=0.2)
 rcParams['font.size'] = 11
 rcParams['path.effects'] = [patheffects.withStroke(linewidth=1, foreground="w")]
 rcParams['font.family'] = ['xkcd', 'sans-serif', 'Segoe UI', 'sans-serif']
-
-
-# Hardcoded API key default
-yt_api_key = 'Add Your API Key Here'
-
-# Command Line Arguments
-parser = argparse.ArgumentParser(description='Log viewership for a youtube livestream')
-parser.add_argument('url', metavar='url', type=str, nargs=1,
-                    help='A YouTube livestream URL')
-parser.add_argument('r', default=-1, type=int, nargs='?',
-                    help='How often to fetch and log viewership (sec) (default: just once)')
-parser.add_argument('api_key', default=yt_api_key, type=str, nargs='?',
-                    help='Youtube API Key (default: hardcoded)')
-parser.add_argument('-gshow', action='store_true', help="Graph and show the CSV output")
-parser.add_argument('-gsave', action='store_true', help="Graph and save a PNG of the CSV output")
-
-args = parser.parse_args()
 
 
 def get_yt_id(url, ignore_playlist=False):
@@ -89,7 +93,6 @@ first_loop = True
 # Refresh loop - only once unless a time is given in the cmd arguments
 while True:
     try:
-
 
         # API Call #1 for misc. video info
         if first_loop == True or video_info_response['items'][0]['snippet']['liveBroadcastContent'] == 'upcoming':
@@ -135,14 +138,17 @@ while True:
 
         # Write new row to CSV (Create it with headers if it doesn't already exist
         try:
-            with open(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv', encoding="utf-8") as f:
+            with open(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
+                      encoding="utf-8") as f:
                 logging.info('File present: ' + video_id + '_video_data.csv')
         except FileNotFoundError:
             logging.info('File NOT present: ' + video_id + '_video_data.csv')
             logging.info('New file will be created')
-            append_list_as_row(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv', vidData)
+            append_list_as_row(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
+                               vidData)
 
-        append_list_as_row(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv', vidData.values())
+        append_list_as_row(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
+                           vidData.values())
     except Exception as e:
         # Catch-all for a fail in the query and data compilation process
         logging.exception("An exception was thrown!")
@@ -152,9 +158,11 @@ while True:
         # Creating and either showing or saving the graph
         # Currently graphs the entire history of the CSV
         # TODO: only graph last X period of data, for 24/7 livestreams
-        logging.info('Graphing CSV: ' + slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv')
+        logging.info(
+            'Graphing CSV: ' + slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv')
         headers = ['data_timestamp', 'livestream_viewers']
-        df = pd.read_csv(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv', parse_dates=['data_timestamp'], date_parser=iso8601.parse_date)
+        df = pd.read_csv(slugify(video_info_response['items'][0]['snippet']['title']) + '_video_data.csv',
+                         parse_dates=['data_timestamp'], date_parser=iso8601.parse_date)
         video_title_fromcsv = df['title'].iat[-1]
         num_rows_fromcsv = df.shape[0]
 
@@ -164,12 +172,12 @@ while True:
         plt.setp(plt.gca().xaxis.get_ticklabels(), rotation=30, horizontalalignment='right')
         plt.gca().xaxis.set_major_formatter(myFmt)
         plt.plot('data_timestamp', 'livestream_viewers', data=df, solid_capstyle='round')
-        #plt.title("Youtube Livestream Concurrent Viewer Log\n\n" + video_title_fromcsv + "\n Plotting " + str(
-            #num_rows_fromcsv) + " Data Points", fontproperties=fprop)
+        # plt.title("Youtube Livestream Concurrent Viewer Log\n\n" + video_title_fromcsv + "\n Plotting " + str(
+        # num_rows_fromcsv) + " Data Points", fontproperties=fprop)
         plt.suptitle("Youtube Livestream Concurrent Viewer Log")
         plt.title(video_title_fromcsv, fontproperties=fprop, fontsize=14)
         plt.text(1, 1.12, 'Labtec901', transform=plt.gca().transAxes, horizontalalignment="right",
-        verticalalignment="bottom", fontsize=5) #watermark
+                 verticalalignment="bottom", fontsize=5)  # watermark
         plt.xlabel("Time")
         plt.ylabel("Concurrent Livestream Viewership")
         if args.gshow == True:
@@ -179,7 +187,8 @@ while True:
         if args.gsave == True:
             logging.info('Saving plot to disk...')
             plt.gcf().set_size_inches(16, 8)
-            plt.savefig(slugify(video_info_response['items'][0]['snippet']['title']) + '_graph.png', dpi=250, bbox_inches='tight')
+            plt.savefig(slugify(video_info_response['items'][0]['snippet']['title']) + '_graph.png', dpi=250,
+                        bbox_inches='tight')
     if args.r == -1:
         logging.info('Exiting... (Was not looped)')
         break
