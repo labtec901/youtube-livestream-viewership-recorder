@@ -1,8 +1,9 @@
 # youtube-livestream-viewership-recorder
 Record, log, and graph the live concurrent viewership of a YouTube Livestream
-![starbase-live-24-7-starship-super-heavy-development-from-spacex-s-boca-chica-facility_graph](https://user-images.githubusercontent.com/11169730/196594217-e2a9e274-ede7-4654-a69b-7fbd919b1950.png)
+![starbase-live-24-7-starship-super-heavy-development-from-spacex-s-boca-chica-facility_graph](https://user-images.githubusercontent.com/11169730/197109895-b94c4407-c72c-47f3-96b8-394e3d8b9bd4.png)
 
 ```
+
 usage: main.py [-h] [--filepath [FILEPATH]] [--api_key [API_KEY]] [-gshow] [-gsave] url [r]
 
 Log viewership for a youtube livestream
