@@ -4,18 +4,27 @@ Record, log, and graph the live concurrent viewership of a YouTube Livestream
 
 ```
 
-usage: main.py [-h] [--filepath [FILEPATH]] [--api_key [API_KEY]] [-gshow] [-gsave] url [r]
+usage: youtube_livestream_viewership_recorder.py [-h] [--filepath [FILEPATH]]
+                                                 [--api_key [API_KEY]]
+                                                 [--healthcheck [HEALTHCHECK]]
+                                                 [-gshow] [-gsave]
+                                                 url [r]
 
 Log viewership for a youtube livestream
 
 positional arguments:
   url                   A YouTube livestream URL
-  r                     How often to fetch and log viewership (sec) (default: just once)
+  r                     How often to fetch and log viewership (sec) (default:
+                        just once)
 
 options:
   -h, --help            show this help message and exit
-  --filepath [FILEPATH] Path to save logs and images to (default: current working directory)
+  --filepath [FILEPATH]
+                        Path to save logs and images to (default: current
+                        working directory)
   --api_key [API_KEY]   Youtube API Key (default: hardcoded)
+  --healthcheck [HEALTHCHECK]
+                        HealthCheck.io URL to ping on successful data write
   -gshow                Graph and show the CSV output
   -gsave                Graph and save a PNG of the CSV output
   ```
